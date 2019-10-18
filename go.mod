@@ -1,3 +1,3 @@
-module github.com/ahmdrz/goinsta/v2
+module github.com/lordofbuckwheat/goinsta
 
 go 1.12
