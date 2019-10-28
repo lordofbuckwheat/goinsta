@@ -788,23 +788,26 @@ func (media *FeedMedia) Next(params ...interface{}) bool {
 			},
 		},
 	)
-	if err == nil {
-		m := FeedMedia{}
-		d := json.NewDecoder(bytes.NewReader(body))
-		d.UseNumber()
-		err = d.Decode(&m)
-		if err == nil {
-			*media = m
-			media.inst = insta
-			media.endpoint = endpoint
-			if m.NextID == 0 || !m.MoreAvailable {
-				media.err = ErrNoMore
-			}
-			media.setValues()
-			return true
-		}
+	if err != nil {
+		media.err = err
+		return false
 	}
-	return false
+	m := FeedMedia{}
+	d := json.NewDecoder(bytes.NewReader(body))
+	d.UseNumber()
+	err = d.Decode(&m)
+	if err != nil {
+		media.err = err
+		return false
+	}
+	*media = m
+	media.inst = insta
+	media.endpoint = endpoint
+	if m.NextID == 0 || !m.MoreAvailable {
+		media.err = ErrNoMore
+	}
+	media.setValues()
+	return true
 }
 
 // UploadPhoto post image from io.Reader to instagram.
