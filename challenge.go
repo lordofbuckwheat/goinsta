@@ -38,6 +38,10 @@ func newChallenge(insta *Instagram) *Challenge {
 	return time
 }
 
+func (challenge *Challenge) LastRequest() *LastRequest {
+	return challenge.insta.LastRequest
+}
+
 // updateState updates current data from challenge url
 func (challenge *Challenge) updateState() error {
 	insta := challenge.insta

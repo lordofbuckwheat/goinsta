@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -82,8 +83,13 @@ func (insta *Instagram) sendRequest(o *reqOptions) (body []byte, err error) {
 	}
 
 	var req *http.Request
+	insta.LastRequest = &LastRequest{
+		Url:  u,
+		Body: bf.Bytes(),
+	}
 	req, err = http.NewRequest(method, u.String(), bf)
 	if err != nil {
+		insta.LastRequest.Error = fmt.Errorf("new request: %s", err)
 		return
 	}
 
@@ -101,8 +107,10 @@ func (insta *Instagram) sendRequest(o *reqOptions) (body []byte, err error) {
 
 	resp, err := insta.c.Do(req)
 	if err != nil {
+		insta.LastRequest.Error = fmt.Errorf("do request: %s", err)
 		return nil, err
 	}
+	insta.LastRequest.Response.StatusCode = resp.StatusCode
 	defer resp.Body.Close()
 
 	u, _ = url.Parse(goInstaAPIUrl)
@@ -112,10 +120,15 @@ func (insta *Instagram) sendRequest(o *reqOptions) (body []byte, err error) {
 		}
 	}
 
-	body, err = ioutil.ReadAll(resp.Body)
+	bf = &bytes.Buffer{}
+	var respBody = io.TeeReader(resp.Body, bf)
+	body, err = ioutil.ReadAll(respBody)
 	if err == nil {
 		err = isError(resp.StatusCode, body)
+	} else {
+		insta.LastRequest.Error = fmt.Errorf("read response: %s", err)
 	}
+	insta.LastRequest.Response.Body = bf.Bytes()
 	return body, err
 }
 

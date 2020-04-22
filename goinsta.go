@@ -72,6 +72,18 @@ type Instagram struct {
 	Locations *LocationInstance
 
 	c *http.Client
+
+	LastRequest *LastRequest
+}
+
+type LastRequest struct {
+	Url      *neturl.URL
+	Body     []byte
+	Error    error
+	Response struct {
+		StatusCode int
+		Body       []byte
+	}
 }
 
 // SetHTTPClient sets http client.  This further allows users to use this functionality
